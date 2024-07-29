@@ -11,21 +11,55 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mobile, setMobile] = useState("");
+  const [errors,setErrors] = useState({});
   const { firebase } = useContext(FirebaseContext);
+
+  const validateForm = () =>{
+    const errors = {};
+    if(!username){
+      errors.username = "User name is required";
+    }
+
+    if(!email){
+      errors.email = "Email is required";
+    }else if(!/\S+@\S+\.\S+/.test(email)){
+      errors.email = "Invalid Email";
+    }
+
+    if(!mobile){
+      errors.mobile = "Mobile Number is required";
+    }else if(!/^\d{10}$/.test(mobile)){
+      errors.mobile = "Invalid Mobile Number";
+    }
+
+    if(!password){
+      errors.password = "Password is required";
+    }else if(password.length < 6){
+      errors.password = "Password must be atleast 6 characters";
+    }
+
+    return errors
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    firebase.auth().createUserWithEmailAndPassword(email,password).then((result)=>{
-      result.user.updateProfile({displayName:username}).then(()=>{
-        firebase.firestore().collection('users').add({
-          id:result.user.uid,
-          username:username,
-          phone : mobile
-        }).then(()=>{
-          history.push('/login')
+    const signupErrors = validateForm();
+    if(Object.keys(signupErrors).length === 0){
+      setErrors({})
+      firebase.auth().createUserWithEmailAndPassword(email,password).then((result)=>{
+        result.user.updateProfile({displayName:username}).then(()=>{
+          firebase.firestore().collection('users').add({
+            id:result.user.uid,
+            username:username,
+            phone : mobile
+          }).then(()=>{
+            history.replace('/login')
+          })
         })
       })
-    })
+    }else{
+      setErrors(signupErrors);
+    }
   };
   return (
     <div>
@@ -45,6 +79,7 @@ export default function Signup() {
             name="name"
           />
           <br />
+          {errors.username && <p style={{color:'red',fontSize:'small'}}>{errors.username}</p>}
           <label htmlFor="fname">Email</label>
           <br />
           <input
@@ -57,11 +92,12 @@ export default function Signup() {
             defaultValue="John"
           />
           <br />
+          {errors.email && <p style={{color:'red',fontSize:'small'}}>{errors.email}</p>}
           <label htmlFor="lname">Phone</label>
           <br />
           <input
             className="input"
-            type="number"
+            type="text"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
             id="lname"
@@ -69,6 +105,7 @@ export default function Signup() {
             defaultValue="Doe"
           />
           <br />
+          {errors.mobile && <p style={{color:'red',fontSize:'small'}}>{errors.mobile}</p>}
           <label htmlFor="lname">Password</label>
           <br />
           <input
@@ -81,6 +118,7 @@ export default function Signup() {
             defaultValue="Doe"
           />
           <br />
+          {errors.password && <p style={{color:'red',fontSize:'small'}}>{errors.password}</p>}
           <br />
           <button>Signup</button>
         </form>

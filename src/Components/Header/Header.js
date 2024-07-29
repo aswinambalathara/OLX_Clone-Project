@@ -13,6 +13,15 @@ function Header() {
   const { user } = useContext(AuthContext);
   const {firebase} = useContext(FirebaseContext);
   const history = useHistory()
+
+ const  handleSellBtn = () =>{
+  if(!user){
+    history.push('/login')
+  }else{
+    history.push('/create');
+  }
+ }
+
   return (
     <div className="headerParentDiv">
       <div className="headerChildDiv">
@@ -45,17 +54,15 @@ function Header() {
         </div>
         {user && <span className="authButton" onClick={()=>{
           firebase.auth().signOut();
-          history.push('/login');
+          history.replace('/login');
         }}>Logout</span>}
-        <Link to='/create'>
-        <div className="sellMenu">
+        <div className="sellMenu" onClick={handleSellBtn}>
           <SellButton></SellButton>
           <div className="sellMenuContent">
             <SellButtonPlus></SellButtonPlus>
              <span> SELL</span>
           </div>
         </div>
-        </Link>
       </div>
     </div>
   );

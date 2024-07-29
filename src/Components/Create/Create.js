@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import "./Create.css";
 import Header from "../Header/Header";
-import Loader from "../Loader/Loader.js";
 import { AuthContext, FirebaseContext } from "../../store/Contexts";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
@@ -12,37 +11,37 @@ const Create = () => {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState(null);
-  const [isLoading,setLoading] = useState(false);
+  const [errors,setErrors] = useState({});
   const history = useHistory();
   const date = new Date()
-  // const handleSubmit = () => {
-  //   try {
-  //     firebase
-  //     .storage()
-  //     .ref(`/image/${image.name}`)
-  //     .put(image)
-  //     .then(({ ref }) => {
-  //       ref.getDownloadURL().then((url) => {
-  //         firebase.firestore().collection("products").add({
-  //           name,
-  //           category,
-  //           price,
-  //           url,
-  //           userId: user.uid,
-  //           createdAt: date.toDateString(),
-  //         }).then(()=>history.push("/")).catch((firestoreErr)=>history.push('/login'))
-          
-  //       });
-  //     });
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+
+  const validate = () =>{
+    const errors = {}
+
+    if(!name){
+      errors.name = "Name is required";
+    }
+
+    if(!category){
+      errors.category = "Category is required";
+    }
+
+    if(!price){
+      errors.price = "Price is required";
+    }
+
+    if(image === null){
+      errors.image = "Image is required";
+    }
+
+    return errors;
+  }
 
   const handleSubmit = () => {
-    setLoading(true);
-    const storageRef = firebase.storage().ref(`/image/${image.name}`);
-    
+    const productErrors = validate()
+    if(Object.keys(productErrors).length === 0){
+      setErrors({})
+      const storageRef = firebase.storage().ref(`/image/${image.name}`);
     storageRef.put(image)
       .then(snapshot => snapshot.ref.getDownloadURL())
       .then(url => {
@@ -56,15 +55,17 @@ const Create = () => {
         });
       })
       .then(() => {
-        setLoading(false)
-        history.push("/");
+        history.replace("/");
       })
       .catch(error => {
-        setLoading(false)
         console.error('Error:', error);
-        history.push('/login');
+        history.replace('/login');
       });
+    }else{
+      setErrors(productErrors);
+    }
   };
+
   
   return (
     <>
@@ -84,6 +85,7 @@ const Create = () => {
               defaultValue="John"
             />
             <br />
+            {errors.name && <p style={{color:'red',fontSize:'small'}}>{errors.name}</p>}
             <label htmlFor="fname">Category</label>
             <br />
             <input
@@ -96,6 +98,7 @@ const Create = () => {
               defaultValue="John"
             />
             <br />
+            {errors.category && <p style={{color:'red',fontSize:'small'}}>{errors.category}</p>}
             <label htmlFor="fname">Price</label>
             <br />
             <input
@@ -107,6 +110,7 @@ const Create = () => {
               name="Price"
             />
             <br />
+            {errors.price && <p style={{color:'red',fontSize:'small'}}>{errors.price}</p>}
           </div>
           <br />
           {image && (
@@ -126,6 +130,7 @@ const Create = () => {
             type="file"
           />
           <br />
+          {errors.image && <p style={{color:'red',fontSize:'small'}}>{errors.image}</p>}
           <button className="uploadBtn" onClick={handleSubmit}>
             upload and Submit
           </button>

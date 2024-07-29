@@ -7,20 +7,49 @@ import { Link } from "react-router-dom/cjs/react-router-dom.min";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors,setErrors] = useState({});
   const { firebase } = useContext(FirebaseContext);
-  const history = useHistory()
+  const history = useHistory();
+
+const validate = ()=>{
+  const errors = {}
+
+  if(!email){
+    errors.email = "Email is required";
+  }else if(!/\S+@\S+\.\S+/.test(email)){
+    errors.email = "Invalid Email";
+  }
+
+  if(!password){
+    errors.password = "Password is required";
+  }else if(password.length < 6){
+    errors.password = "Password must be atleast 6 characters";
+  }
+
+  return errors
+}
+
   const handleLogin = (e) => {
     e.preventDefault();
-    firebase
+    const loginErrors = validate();
+
+    if(Object.keys(loginErrors).length === 0){
+      setErrors({})
+      firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        history.push('/')
+        history.replace('/')
       })
       .catch((error) => {
         console.log(error)
       });
+    }else{
+      setErrors(loginErrors);
+    }
+   
   };
+
   return (
     <div>
       <div className="loginParentDiv">
@@ -40,6 +69,7 @@ function Login() {
             defaultValue="John"
           />
           <br />
+          {errors.email && <p style={{color:'red',fontSize:'small'}}>{errors.email}</p>}
           <label htmlFor="lname">Password</label>
           <br />
           <input
@@ -52,6 +82,7 @@ function Login() {
             defaultValue="Doe"
           />
           <br />
+          {errors.password && <p style={{color:'red',fontSize:'small'}}>{errors.password}</p>}
           <br />
           <button>Login</button>
         </form>
